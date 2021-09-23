@@ -7,14 +7,13 @@
 # --------------------------------------------------------------
 #from sklearn.metrics import confusion_matrix
 import numpy as np
-from sklearn.metrics import precision_recall_fscore_support
-from sklearn.metrics import average_precision_score
 from sklearn.metrics import classification_report
 import random
 from random import seed
 import pandas as pd
+from random import randrange
+from csv import reader
 from sklearn.feature_extraction.text import TfidfVectorizer
-
 
 seed(0)
 def load_synthetic_data(dimensions):
@@ -25,48 +24,66 @@ def load_synthetic_data(dimensions):
     for rows in range(num_rows):
         row = []
         for cols in range(num_cols):
-            row.append(round(random.random() * 1000 - 1, 1))
-            row.append(int(round(random.random())))
+            row.append(round(random.random() * 2 - 1, 1))
+            row.append(random.randint(0,1))
         dataset.append(row)
     return dataset
 
 
 def load_bag_of_words():
-    documentA = 'the man went out for a walk while the woman jumped on a balcony of ice and cold dreary'
-    documentB = 'the children sat around the fire with the polar bear who wanted to go back to the icey cold'
-    documentC = 'dogs do great things when they are given incentive to do things like save a girl is a good thing'
+    documentA = 'crawler of the attic man'
+    documentB = 'beyond the jumper of dog likes'
+    documentC = 'jumped the dog'
+    documentD = 'super duper the fire in the attic was not great'
 
-    bag_of_Words_A = documentA.split(' ')
-    bag_of_Words_B = documentB.split(' ')
-    bag_of_Words_C = documentC.split(' ')
-    uniqueWords = set(bag_of_Words_A).union(set(bag_of_Words_B).union(set(bag_of_Words_C)))
+    # bag_of_Words_A = documentA.split(' ')
+    # bag_of_Words_B = documentB.split(' ')
+    # bag_of_Words_C = documentC.split(' ')
+    # bag_of_Words_D = documentC.split(' ')
+    # uniqueWords = set(bag_of_Words_A).union(set(bag_of_Words_B)).union(set(bag_of_Words_C)).union(set(bag_of_Words_D))
+    #
+    # num_of_words_A = dict.fromkeys(uniqueWords,0)
+    # for word in bag_of_Words_A:
+    #     num_of_words_A[word] += 1
+    #
+    # num_of_words_B = dict.fromkeys(uniqueWords, 0)
+    # for word in bag_of_Words_B:
+    #     num_of_words_B[word] += 1
+    #
+    # num_of_words_C = dict.fromkeys(uniqueWords, 0)
+    # for word in bag_of_Words_C:
+    #     num_of_words_C[word] += 1
+    #
+    # num_of_words_D = dict.fromkeys(uniqueWords, 0)
+    # for word in bag_of_Words_D:
+    #     num_of_words_D[word] += 1
+    #
+    # # from nltk.corpus import stopwords
+    # # stopwords.words('english')
+    #
+    # tfA = computeTF(num_of_words_A, bag_of_Words_A)
+    # tfB = computeTF(num_of_words_B, bag_of_Words_B)
+    # tfC = computeTF(num_of_words_C, bag_of_Words_C)
+    # tfD = computeTF(num_of_words_D, bag_of_Words_D)
+    #
+    # idfs = computeIDF([num_of_words_A, num_of_words_B, num_of_words_C, num_of_words_D])
+    #
+    # tfidfA = computeTFIDF(tfA, idfs)
+    # tfidfB = computeTFIDF(tfB, idfs)
+    # tfidfC = computeTFIDF(tfC, idfs)
+    # tfidfD = computeTFIDF(tfD, idfs)
+    # df = pd.DataFrame([tfidfA, tfidfB, tfidfC, tfidfD])
+    vectorizer = TfidfVectorizer()
+    vectors = vectorizer.fit_transform([documentA, documentB, documentC])
+    feature_names = vectorizer.get_feature_names()
+    dense = vectors.todense()
+    denselist = dense.tolist()
+    df = pd.DataFrame(denselist, columns=feature_names)
+    dataset = df.values.tolist()
+    for row in dataset:
+        row.append(random.randint(0,1))
+    return dataset
 
-    num_of_words_A = dict.fromkeys(uniqueWords,0)
-    for word in bag_of_Words_A:
-        num_of_words_A[word] += 1
-
-    num_of_words_B = dict.fromkeys(uniqueWords, 0)
-    for word in bag_of_Words_B:
-        num_of_words_B[word] += 1
-
-    num_of_words_C = dict.fromkeys(uniqueWords, 0)
-    for word in bag_of_Words_C:
-        num_of_words_C[word] += 1
-
-    # from nltk.corpus import stopwords
-    # stopwords.words('english')
-
-    tfA = computeTF(num_of_words_A, bag_of_Words_A)
-    tfB = computeTF(num_of_words_B, bag_of_Words_B)
-    tfC = computeTF(num_of_words_C, bag_of_Words_C)
-
-    idfs = computeIDF([num_of_words_A, num_of_words_B, num_of_words_C])
-
-    tfidfA = computeTFIDF(tfA, idfs)
-    tfidfB = computeTFIDF(tfB, idfs)
-    tfidfC = computeTFIDF(tfC, idfs)
-    df = pd.DataFrame([tfidfA, tfidfB, tfidfC])
-    return df.values.tolist()
 
 
 def computeTF(wordDict, bagOfWords):
@@ -109,33 +126,33 @@ def predict(row, weights):
     return 1.0 if activation >= 0.0 else 0.0
 
 
-# # testing predictions
-# dataset = [[2.7810836, 2.550537003, 0], [1.465489372, 2.362125076, 0], [3.396561688, 4.400293529, 0],
-#            [1.38807019, 1.850220317, 0], [3.06407232, 3.005305973, 0], [7.627531214, 2.759262235, 1],
-#            [5.332441248, 2.088626775, 1], [6.922596716, 1.77106367, 1], [8.675418651, -0.242068655, 1],
-#            [7.673756466, 3.508563011, 1]]
-#
-# weights = [-.1, 0.20653640140000007, -0.23418117710000003]  # weights
+# testing predictions
+dataset = [[2.7810836, 2.550537003, 0], [1.465489372, 2.362125076, 0], [3.396561688, 4.400293529, 0],
+           [1.38807019, 1.850220317, 0], [3.06407232, 3.005305973, 0], [7.627531214, 2.759262235, 1],
+           [5.332441248, 2.088626775, 1], [6.922596716, 1.77106367, 1], [8.675418651, -0.242068655, 1],
+           [7.673756466, 3.508563011, 1]]
 
-# for row in dataset:
-#     prediction = predict(row, weights)
-#     print("Expected=%d, Predicted=%d" % (row[-1], prediction))
+weights = [-.1, 0.20653640140000007, -0.23418117710000003]  # weights
+
+for row in dataset:
+    prediction = predict(row, weights)
+    print("Expected=%d, Predicted=%d" % (row[-1], prediction))
 
 
 # Estimate Perceptron weights using stochastic gradient descent
 def train_weights(train, l_rate, n_epoch):
-    print(train)
     weights = [0.0 for i in range(len(train[0]))]
     for epoch in range(n_epoch):
         sum_error = 0.0
         for row in train:
             prediction = predict(row, weights)
             error = row[-1] - prediction
-            sum_error += error ** 2
+            sum_error += error**2
             weights[0] = weights[0] + l_rate * error
             for i in range(len(row) - 1):
                 weights[i + 1] = weights[i + 1] + l_rate * error * row[i]
         print('>epoch=%d, lrate=%.5f, error=%.3f' % (epoch, l_rate, sum_error))
+        print(weights)
     return weights
 
 
@@ -145,9 +162,7 @@ def train_weights(train, l_rate, n_epoch):
 # print(weights)
 
 # Perceptron Algoirthm on the Sonar DataSet
-from random import seed
-from random import randrange
-from csv import reader
+
 
 
 # Load a CSV file
@@ -206,6 +221,7 @@ def accuracy_metric(actual, predicted):
 # Evaluate an algorithm using cross validation split
 def evaluate_algorithm(dataset, algorithm, n_folds, *args):
     folds = cross_validation_split(dataset, n_folds)
+    class_report = [0,0,0]
     scores = list()
     for fold in folds:
         train_set = list(folds)
@@ -220,17 +236,14 @@ def evaluate_algorithm(dataset, algorithm, n_folds, *args):
         actual = [row[-1] for row in fold]
         accuracy = accuracy_metric(actual, predicted)
         scores.append(accuracy)
-
+        # calculating precision, recall, f1 score using scikit-learn
+        class_report[0] += classification_report(actual, predicted, labels=[1], output_dict=1, digits=4)['1']['precision']
+        class_report[1] += classification_report(actual, predicted, labels=[1], output_dict=1, digits=4)['1']['recall']
+        class_report[2] += classification_report(actual, predicted, labels=[1], output_dict=1, digits=4)['1']['f1-score']
         # use scikit to find confusion matrix and compute metrics
         conf_matrix = (actual, predicted)
-        # metrics = precision_recall_fscore_support(actual, predicted, average='macro')
-        # average_precision = average_precision_score(predicted, actual)
-        # print(classification_report(actual, predicted, labels=[1], zero_division='warn'))
-        # print(average_precision)
-        # print("Precision: %.2f%% Recall: %.2f%% F1 Score: %.2f%%" % other_metrics(actual, predicted))
-        # print(conf_matrix)
-        # print("Precision: %.2f%% Recall: %.2f%% F1 Score: %.2f%%" % metrics[0:3])
-    return (scores, classification_report(actual, predicted, labels=[1],digits=4, zero_division='warn'), conf_matrix)
+
+    return (scores, class_report[0] , class_report[1], class_report[2], conf_matrix)
 
 
 # Perceptron Algorithm With Stochastic Gradient Descent
@@ -240,7 +253,7 @@ def perceptron(train, test, l_rate, n_epoch):
     for row in test:
         prediction = predict(row, weights)
         predictions.append(prediction)
-    return predictions
+    return (predictions)
 
 
 # Test the Perceptron algorithm on the sonar dataset
@@ -260,19 +273,21 @@ if is_synthetic == 0:
         dataset = load_csv(filename)
         for i in range(len(dataset[0]) - 1):
             str_column_to_float(dataset, i)
+
 else:
     num_dimensions = int(input("How many dimensions?"))
     dataset = load_synthetic_data(num_dimensions)
-# convert string class to integers
+ # convert string class to integers
 str_column_to_int(dataset, len(dataset[0]) - 1)
 # evaluate algorithm
 n_folds = 3
-l_rate = 1233
+l_rate = .01
 n_epoch = 500
 print(dataset)
-scores = evaluate_algorithm(dataset, perceptron, n_folds, l_rate, n_epoch)
-print('Scores: %s' % scores[0])
-print(scores[1])  # printing other metrics
-print('Mean Accuracy: %.3f%%' % (sum(scores[0]) / float(len(scores[0]))))
-print("Confusion Matrix:", scores[2])
+output = evaluate_algorithm(dataset, perceptron, n_folds, l_rate, n_epoch)
+print('Scores: %s' % output[0])
+print('Precision: %.3f%% | Recall: %.3f%% | F1-Score: %.3f%% ' % (output[1]/float(len(output[0])),
+      output[2]/float(len(output[0])), output[3]/float(len(output[0]))) )  # printing other metrics
+print('Mean Accuracy: %.3f%%' % (sum(output[0]) / float(len(output[0]))))
+print("Confusion Matrix:", output[4])
 
